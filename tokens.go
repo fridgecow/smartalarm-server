@@ -1,6 +1,8 @@
 package main
 
-import ()
+import (
+	"fmt"
+)
 
 var (
 	TokenStore map[string]struct{}
@@ -9,7 +11,7 @@ var (
 	IdToToken map[string]string
 )
 
-func init() {
+func tokenInit() {
 	TokenStore = make(map[string]struct{})
 	TokenToId = make(map[string]string)
 	IdToToken = make(map[string]string)
@@ -18,8 +20,10 @@ func init() {
 
 func RegisterToken(token string) error {
 	TokenStore[token] = struct{}{}
+	if _, err := fmt.Fprintf(TokenFile, "%s\n", token); err != nil {
+		return fmt.Errorf("Encountered an error writing token to file: %s", err)
+	}
 	return nil
-	// TODO: Write to file
 }
 
 func RegisterCrsid(token, crsid string) error {
@@ -36,6 +40,9 @@ func RegisterCrsid(token, crsid string) error {
 	TokenToId[token] = crsid
 	IdToToken[crsid] = token
 
+	if _, err := fmt.Fprintf(IdFile, "%s:%s\n", crsid, token); err != nil {
+		return fmt.Errorf("Encountered an error writing crsid to file: %s", err)
+	}
+
 	return nil
-	// TODO: Write to file
 }
