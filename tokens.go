@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"log"
+	"strings"
 )
 
 var (
@@ -15,7 +18,34 @@ func tokenInit() {
 	TokenStore = make(map[string]struct{})
 	TokenToId = make(map[string]string)
 	IdToToken = make(map[string]string)
-	// TODO: Read in from file
+
+	tokenFile := bufio.NewScanner(TokenFile)
+	for tokenFile.Scan() {
+		TokenStore[tokenFile.Text()] = struct{}{}
+	}
+	if err := tokenFile.Err(); err != nil {
+		log.Fatal("Failed to read token file: ", err)
+	}
+
+	idFile := bufio.NewScanner(IdFile)
+	for idFile.Scan() {
+		line := strings.Split(idFile.Text(), ":")
+		storeCrsid(line[1], line[0])
+	}
+	if err := idFile.Err(); err != nil {
+		log.Fatal("Failed to read crsid file: ", err)
+	}
+}
+
+func storeCrsid(token, crsid string) {
+	if id, seen := TokenToId[token]; seen {
+		delete(IdToToken, id)
+	}
+	if tok, seen := IdToToken[crsid]; seen {
+		delete(TokenToId, tok)
+	}
+	TokenToId[token] = crsid
+	IdToToken[crsid] = token
 }
 
 func RegisterToken(token string) error {
@@ -31,14 +61,7 @@ func RegisterCrsid(token, crsid string) error {
 		return err
 	}
 
-	if id, seen := TokenToId[token]; seen {
-		delete(IdToToken, id)
-	}
-	if tok, seen := IdToToken[crsid]; seen {
-		delete(TokenToId, tok)
-	}
-	TokenToId[token] = crsid
-	IdToToken[crsid] = token
+	storeCrsid(token, crsid)
 
 	if _, err := fmt.Fprintf(IdFile, "%s:%s\n", crsid, token); err != nil {
 		return fmt.Errorf("Encountered an error writing crsid to file: %s", err)
