@@ -33,16 +33,20 @@ func test(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("</ul></body></html>"))
 }
 
-func ReturnSuccess(w io.Writer, message interface{}) {
-	json.NewEncoder(w).Encode(struct {
-		Success string `json:"success"`
-	}{fmt.Sprintf("%s", message)})
+type Response struct {
+	Success string `json:"success,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
-func ReturnError(w io.Writer, message interface{}) {
-	json.NewEncoder(w).Encode(struct {
-		Error string `json:"error"`
-	}{fmt.Sprintf("%s", message)})
+func str(x interface{}) string {
+	if x == nil {
+		return ""
+	}
+	return fmt.Sprintf("%s", x)
+}
+
+func Return(w io.Writer, success, err interface{}) {
+	json.NewEncoder(w).Encode(Response{Success: str(success), Error: str(err)})
 }
 
 func registerToken(w http.ResponseWriter, r *http.Request) {
@@ -50,18 +54,19 @@ func registerToken(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	data := make(map[string]string)
 	if err := decoder.Decode(&data); err != nil {
-		ReturnError(w, err)
+		Return(w, nil, err)
+		return
 	}
 	token, ok := data["token"]
 	if !ok {
-		ReturnError(w, "Key 'token' not found in request")
+		Return(w, nil, "Key 'token' not found in request")
 		return
 	}
 	if err := RegisterToken(token); err != nil {
-		ReturnError(w, err)
+		Return(w, nil, err)
 		return
 	}
-	ReturnSuccess(w, token)
+	Return(w, token, nil)
 }
 
 func registerCrsid(w http.ResponseWriter, r *http.Request) {
@@ -69,23 +74,24 @@ func registerCrsid(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	data := make(map[string]string)
 	if err := decoder.Decode(&data); err != nil {
-		ReturnError(w, err)
+		Return(w, nil, err)
+		return
 	}
 	token, ok := data["token"]
 	if !ok {
-		ReturnError(w, "Key 'token' not found in request")
+		Return(w, nil, "Key 'token' not found in request")
 		return
 	}
 	crsid, ok := data["crsid"]
 	if !ok {
-		ReturnError(w, "Key 'crsid' not found in request")
+		Return(w, nil, "Key 'crsid' not found in request")
 		return
 	}
 	if err := RegisterCrsid(token, crsid); err != nil {
-		ReturnError(w, err)
+		Return(w, nil, err)
 		return
 	}
-	ReturnSuccess(w, fmt.Sprintf("%s:%s", crsid, token))
+	Return(w, fmt.Sprintf("%s:%s", crsid, token), nil)
 }
 
 func pushTokens(w http.ResponseWriter, r *http.Request) {
