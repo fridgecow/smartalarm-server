@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -31,18 +33,59 @@ func test(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("</ul></body></html>"))
 }
 
-type response struct {
-	Key string `json:"key"`
-	Foo string `json:"foo"`
+func ReturnSuccess(w io.Writer, message interface{}) {
+	json.NewEncoder(w).Encode(struct {
+		Success string `json:"success"`
+	}{fmt.Sprintf("%s", message)})
+}
+
+func ReturnError(w io.Writer, message interface{}) {
+	json.NewEncoder(w).Encode(struct {
+		Error string `json:"error"`
+	}{fmt.Sprintf("%s", message)})
 }
 
 func registerToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response{Key: "value", Foo: "bar"})
+	decoder := json.NewDecoder(r.Body)
+	data := make(map[string]string)
+	if err := decoder.Decode(&data); err != nil {
+		ReturnError(w, err)
+	}
+	token, ok := data["token"]
+	if !ok {
+		ReturnError(w, "Key 'token' not found in request")
+		return
+	}
+	if err := RegisterToken(token); err != nil {
+		ReturnError(w, err)
+		return
+	}
+	ReturnSuccess(w, token)
 }
 
 func registerCrsid(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Register worker crsid"))
+	w.Header().Set("Content-Type", "application/json")
+	decoder := json.NewDecoder(r.Body)
+	data := make(map[string]string)
+	if err := decoder.Decode(&data); err != nil {
+		ReturnError(w, err)
+	}
+	token, ok := data["token"]
+	if !ok {
+		ReturnError(w, "Key 'token' not found in request")
+		return
+	}
+	crsid, ok := data["crsid"]
+	if !ok {
+		ReturnError(w, "Key 'crsid' not found in request")
+		return
+	}
+	if err := RegisterCrsid(token, crsid); err != nil {
+		ReturnError(w, err)
+		return
+	}
+	ReturnSuccess(w, fmt.Sprintf("%s:%s", crsid, token))
 }
 
 func pushTokens(w http.ResponseWriter, r *http.Request) {
