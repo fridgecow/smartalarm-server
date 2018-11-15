@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 )
 
 var (
 	TokenStore map[string]struct{}
+	TokenMutex sync.Mutex
 
 	TokenToId map[string]string
 	IdToToken map[string]string
+	IdMutex   sync.Mutex
 )
 
 func tokenInit() {
@@ -49,6 +52,9 @@ func storeCrsid(token, crsid string) {
 }
 
 func RegisterToken(token string) error {
+	TokenMutex.Lock()
+	defer TokenMutex.Unlock()
+
 	TokenStore[token] = struct{}{}
 	if _, err := fmt.Fprintf(TokenFile, "%s\n", token); err != nil {
 		return fmt.Errorf("Encountered an error writing token to file: %s", err)
@@ -61,11 +67,12 @@ func RegisterCrsid(token, crsid string) error {
 		return err
 	}
 
-	storeCrsid(token, crsid)
+	IdMutex.Lock()
+	defer IdMutex.Unlock()
 
+	storeCrsid(token, crsid)
 	if _, err := fmt.Fprintf(IdFile, "%s:%s\n", crsid, token); err != nil {
 		return fmt.Errorf("Encountered an error writing crsid to file: %s", err)
 	}
-
 	return nil
 }
