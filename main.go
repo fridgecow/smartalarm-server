@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -54,7 +55,10 @@ func registerToken(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	data := make(map[string]string)
 	if err := decoder.Decode(&data); err != nil {
-		Return(w, nil, err)
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		s := buf.String()
+		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
 		return
 	}
 	token, ok := data["token"]
@@ -74,7 +78,10 @@ func registerCrsid(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	data := make(map[string]string)
 	if err := decoder.Decode(&data); err != nil {
-		Return(w, nil, err)
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		s := buf.String()
+		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
 		return
 	}
 	token, ok := data["token"]
