@@ -20,23 +20,23 @@ func sayHello(w http.ResponseWriter, r *http.Request) {
 
 func test(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("<html><body><h1>Test Page</h1><h2>Tokens</h2><ul>"))
-	for k := range TokenStore {
-		w.Write([]byte("<li>" + k + "</li>"))
+	for tok := range TokenStore {
+		w.Write([]byte("<li>" + string(tok) + "</li>"))
 	}
 	w.Write([]byte("</ul><h2>Tokens -> Crsids</h2><ul>"))
 	for tok, id := range TokenToId {
-		w.Write([]byte("<li>" + tok + " -> " + id + "</li>"))
+		w.Write([]byte("<li>" + string(tok) + " -> " + id + "</li>"))
 	}
 	w.Write([]byte("</ul><h2>Crsids -> Tokens</h2><ul>"))
 	for id, tok := range IdToToken {
-		w.Write([]byte("<li>" + id + " -> " + tok + "</li>"))
+		w.Write([]byte("<li>" + id + " -> " + string(tok) + "</li>"))
 	}
 	w.Write([]byte("</ul></body></html>"))
 }
 
 type Response struct {
-	Success string `json:"success,omitempty"`
-	Error   string `json:"error,omitempty"`
+	Success string   `json:"success,omitempty"`
+	Error   string   `json:"error,omitempty"`
 }
 
 func str(x interface{}) string {
@@ -101,6 +101,41 @@ func registerCrsid(w http.ResponseWriter, r *http.Request) {
 	Return(w, fmt.Sprintf("%s:%s", crsid, token), nil)
 }
 
+type PushRequest struct {
+	Tokens []string          `json:"tokens"`
+	Crsids []string          `json:"crsids"`
+	Title  string            `json:"title"`
+	Body   string            `json:"body"`
+	Data   map[string]string `json:"data"`
+}
+
+func pushAll(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	decoder := json.NewDecoder(r.Body)
+	var request PushRequest
+	if err := decoder.Decode(&request); err != nil {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		s := buf.String()
+		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
+		return
+	}
+	var tokens []Token
+	for token := range TokenStore {
+		tokens = append(tokens, token)
+	}
+	errs := pushToTokens(tokens, request.Title, request.Body, request.Data)
+	if errs != nil {
+		var responses []Response
+		for _, err := range errs {
+			responses = append(responses, Response{ Error: err.Error() })
+		}
+		json.NewEncoder(w).Encode(responses)
+		return
+	}
+	json.NewEncoder(w).Encode([]Response{ Response{ Success: "all" } })
+}
+
 func pushTokens(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Push notification to tokens"))
 }
@@ -112,6 +147,7 @@ func pushCrsids(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/register/token", registerToken)
 	http.HandleFunc("/register/crsid", registerCrsid)
+	http.HandleFunc("/push/all", pushAll)
 	http.HandleFunc("/push/tokens", pushTokens)
 	http.HandleFunc("/push/crsids", pushCrsids)
 	http.HandleFunc("/test", test)

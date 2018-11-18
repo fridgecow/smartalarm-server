@@ -6,25 +6,29 @@ import (
 	"log"
 	"strings"
 	"sync"
+
+	"github.com/oliveroneill/exponent-server-sdk-golang/sdk"
 )
 
+type Token = expo.ExponentPushToken
+
 var (
-	TokenStore map[string]struct{}
+	TokenStore map[Token]struct{}
 	TokenMutex sync.Mutex
 
-	TokenToId map[string]string
-	IdToToken map[string]string
+	TokenToId map[Token]string
+	IdToToken map[string]Token
 	IdMutex   sync.Mutex
 )
 
 func tokenInit() {
-	TokenStore = make(map[string]struct{})
-	TokenToId = make(map[string]string)
-	IdToToken = make(map[string]string)
+	TokenStore = make(map[Token]struct{})
+	TokenToId = make(map[Token]string)
+	IdToToken = make(map[string]Token)
 
 	tokenFile := bufio.NewScanner(TokenFile)
 	for tokenFile.Scan() {
-		TokenStore[tokenFile.Text()] = struct{}{}
+		TokenStore[Token(tokenFile.Text())] = struct{}{}
 	}
 	if err := tokenFile.Err(); err != nil {
 		log.Fatal("Failed to read token file: ", err)
@@ -33,14 +37,14 @@ func tokenInit() {
 	idFile := bufio.NewScanner(IdFile)
 	for idFile.Scan() {
 		line := strings.Split(idFile.Text(), ":")
-		storeCrsid(line[1], line[0])
+		storeCrsid(Token(line[1]), line[0])
 	}
 	if err := idFile.Err(); err != nil {
 		log.Fatal("Failed to read crsid file: ", err)
 	}
 }
 
-func storeCrsid(token, crsid string) {
+func storeCrsid(token Token, crsid string) {
 	if id, seen := TokenToId[token]; seen {
 		delete(IdToToken, id)
 	}
@@ -51,7 +55,12 @@ func storeCrsid(token, crsid string) {
 	IdToToken[crsid] = token
 }
 
-func RegisterToken(token string) error {
+func RegisterToken(tokenStr string) error {
+	token, err := expo.NewExponentPushToken(Token(tokenStr))
+	if err != nil {
+		return err
+	}
+
 	TokenMutex.Lock()
 	defer TokenMutex.Unlock()
 
@@ -62,10 +71,11 @@ func RegisterToken(token string) error {
 	return nil
 }
 
-func RegisterCrsid(token, crsid string) error {
-	if err := RegisterToken(token); err != nil {
+func RegisterCrsid(tokenStr, crsid string) error {
+	if err := RegisterToken(tokenStr); err != nil {
 		return err
 	}
+	token := Token(tokenStr)
 
 	IdMutex.Lock()
 	defer IdMutex.Unlock()
