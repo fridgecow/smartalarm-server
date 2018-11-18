@@ -35,8 +35,8 @@ func test(w http.ResponseWriter, r *http.Request) {
 }
 
 type Response struct {
-	Success string   `json:"success,omitempty"`
-	Error   string   `json:"error,omitempty"`
+	Success string `json:"success,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
 func str(x interface{}) string {
@@ -124,24 +124,39 @@ func pushAll(w http.ResponseWriter, r *http.Request) {
 	for token := range TokenStore {
 		tokens = append(tokens, token)
 	}
-	errs := pushToTokens(tokens, request.Title, request.Body, request.Data)
-	if errs != nil {
-		var responses []Response
-		for _, err := range errs {
-			responses = append(responses, Response{ Error: err.Error() })
-		}
-		json.NewEncoder(w).Encode(responses)
-		return
-	}
-	json.NewEncoder(w).Encode([]Response{ Response{ Success: "all" } })
+	json.NewEncoder(w).Encode(pushToTokens(tokens, request.Title, request.Body, request.Data))
 }
 
 func pushTokens(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Push notification to tokens"))
+	w.Header().Set("Content-Type", "application/json")
+	decoder := json.NewDecoder(r.Body)
+	var request PushRequest
+	if err := decoder.Decode(&request); err != nil {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		s := buf.String()
+		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
+		return
+	}
+	var tokens []Token
+	for _, token := range request.Tokens {
+		tokens = append(tokens, Token(token))
+	}
+	json.NewEncoder(w).Encode(pushToTokens(tokens, request.Title, request.Body, request.Data))
 }
 
 func pushCrsids(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Push notification to worker crsids"))
+	w.Header().Set("Content-Type", "application/json")
+	decoder := json.NewDecoder(r.Body)
+	var request PushRequest
+	if err := decoder.Decode(&request); err != nil {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		s := buf.String()
+		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
+		return
+	}
+	json.NewEncoder(w).Encode(pushToCrsids(request.Crsids, request.Title, request.Body, request.Data))
 }
 
 func main() {

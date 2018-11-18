@@ -12,56 +12,61 @@ func init() {
 	Client = *expo.NewPushClient(nil)
 }
 
-func pushToTokens(tokens []Token, title, body string, data map[string]string) []error {
+func pushToTokens(tokens []Token, title, body string, data map[string]string) []Response {
 	var messages []expo.PushMessage
 	for _, token := range tokens {
 		messages = append(messages, expo.PushMessage{
-			To: token,
-			Title: title,
-			Body: body,
-			Data: data,
+			To:       token,
+			Title:    title,
+			Body:     body,
+			Data:     data,
+			Priority: expo.HighPriority,
 		})
 	}
 	responses, err := Client.PublishMultiple(messages)
 	if err != nil {
-		return []error{fmt.Errorf("Error pushing: %s", err)}
+		return []Response{Response{Error: fmt.Sprintf("Error pushing: %s", err)}}
 	}
 
-	var errs []error
+	var result []Response
 	for _, response := range responses {
 		if response.ValidateResponse() != nil {
-			errs = append(errs, fmt.Errorf(response.Message))
+			result = append(result, Response{Error: response.Message})
+		} else {
+			result = append(result, Response{Success: "#"})
 		}
 	}
-	return errs
+	return result
 }
 
-func pushToCrsids(crsids []string, title, body string, data map[string]string) (error, []string, []Token) {
+func pushToCrsids(crsids []string, title, body string, data map[string]string) []Response {
 	var messages []expo.PushMessage
-	var nocrsid []string
+	var result []Response
 	for _, crsid := range crsids {
 		token, ok := IdToToken[crsid]
 		if !ok {
-			nocrsid = append(nocrsid, crsid)
-			continue
+			result = append(result, Response{Error: fmt.Sprintf("\"%s\" not a recognised CRSID", crsid)})
+		} else {
+			messages = append(messages, expo.PushMessage{
+				To:       token,
+				Title:    title,
+				Body:     body,
+				Data:     data,
+				Priority: expo.HighPriority,
+			})
 		}
-		messages = append(messages, expo.PushMessage{
-			To: token,
-			Title: title,
-			Body: body,
-			Data: data,
-		})
 	}
 	responses, err := Client.PublishMultiple(messages)
 	if err != nil {
-		return fmt.Errorf("Error pushing: %s", err), nil, nil
+		return []Response{Response{Error: fmt.Sprintf("Error pushing: %s", err)}}
 	}
 
-	var failed []Token
 	for _, response := range responses {
 		if response.ValidateResponse() != nil {
-			failed = append(failed, response.PushMessage.To)
+			result = append(result, Response{Error: response.Message})
+		} else {
+			result = append(result, Response{Success: "#"})
 		}
 	}
-	return nil, nocrsid, failed
+	return result
 }

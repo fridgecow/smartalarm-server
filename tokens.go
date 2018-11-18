@@ -47,9 +47,11 @@ func tokenInit() {
 func storeCrsid(token Token, crsid string) {
 	if id, seen := TokenToId[token]; seen {
 		delete(IdToToken, id)
+		delete(TokenToId, token)
 	}
 	if tok, seen := IdToToken[crsid]; seen {
 		delete(TokenToId, tok)
+		delete(IdToToken, crsid)
 	}
 	TokenToId[token] = crsid
 	IdToToken[crsid] = token
