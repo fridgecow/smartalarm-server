@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"log"
 
 	"github.com/oliveroneill/exponent-server-sdk-golang/sdk"
 )
@@ -12,7 +13,9 @@ func init() {
 	Client = *expo.NewPushClient(nil)
 }
 
-func pushToTokens(tokens []Token, title, body string, data map[string]string) []Response {
+func pushToTokens(tokens []Token, title, body string, data map[string]string) []error {
+	notificationData, _ := json.Marshal(map[string]string{"title": title, "body": body})
+	data["notification"] = string(notificationData)
 	var messages []expo.PushMessage
 	for _, token := range tokens {
 		messages = append(messages, expo.PushMessage{
@@ -23,29 +26,31 @@ func pushToTokens(tokens []Token, title, body string, data map[string]string) []
 			Priority: expo.HighPriority,
 		})
 	}
+	log.Printf("Pushing messages:\n%+v\n", messages)
 	responses, err := Client.PublishMultiple(messages)
 	if err != nil {
-		return []Response{Response{Error: fmt.Sprintf("Error pushing: %s", err)}}
+		return []error{Err("Error pushing: %s", err)}
 	}
 
-	var result []Response
+	var errs []error
 	for _, response := range responses {
 		if response.ValidateResponse() != nil {
-			result = append(result, Response{Error: response.Message})
-		} else {
-			result = append(result, Response{Success: "#"})
+			errs = append(errs, Err(response.Message))
 		}
 	}
-	return result
+	log.Printf("Messages pushed. Errors returned: %+v\n", errs)
+	return errs
 }
 
-func pushToCrsids(crsids []string, title, body string, data map[string]string) []Response {
+func pushToCrsids(crsids []string, title, body string, data map[string]string) []error {
+	notificationData, _ := json.Marshal(map[string]string{"title": title, "body": body})
+	data["notification"] = string(notificationData)
 	var messages []expo.PushMessage
-	var result []Response
+	var errs []error
 	for _, crsid := range crsids {
 		token, ok := IdToToken[crsid]
 		if !ok {
-			result = append(result, Response{Error: fmt.Sprintf("\"%s\" not a recognised CRSID", crsid)})
+			errs = append(errs, Err("\"%s\" not a recognised CRSID", crsid))
 		} else {
 			messages = append(messages, expo.PushMessage{
 				To:       token,
@@ -56,17 +61,17 @@ func pushToCrsids(crsids []string, title, body string, data map[string]string) [
 			})
 		}
 	}
+	log.Printf("Pushing messages:\n%+v\n", messages)
 	responses, err := Client.PublishMultiple(messages)
 	if err != nil {
-		return []Response{Response{Error: fmt.Sprintf("Error pushing: %s", err)}}
+		return []error{Err("Error pushing: %s", err)}
 	}
 
 	for _, response := range responses {
 		if response.ValidateResponse() != nil {
-			result = append(result, Response{Error: response.Message})
-		} else {
-			result = append(result, Response{Success: "#"})
+			errs = append(errs, Err(response.Message))
 		}
 	}
-	return result
+	log.Printf("Messages pushed. Errors returned: %+v\n", errs)
+	return errs
 }

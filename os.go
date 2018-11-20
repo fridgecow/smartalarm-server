@@ -15,24 +15,25 @@ var (
 )
 
 func init() {
+	log.Println("Initialising server")
 	var err error
 
 	LogFile, err = os.OpenFile(time.Now().Format("log/2006-01-02.15-04-05.log"),
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	log.SetOutput(io.MultiWriter(os.Stdout, LogFile))
+	log.Println("Logging to file")
 
 	TokenFile, err = os.OpenFile("log/tokens", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	IdFile, err = os.OpenFile("log/crsids", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	go tokenInit()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -52,4 +53,5 @@ func init() {
 			os.Exit(1)
 		}
 	}()
+	tokenInit()
 }

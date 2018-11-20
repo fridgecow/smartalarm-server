@@ -4,19 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"strings"
 )
-
-func sayHello(w http.ResponseWriter, r *http.Request) {
-	message := r.URL.Path
-	message = strings.TrimPrefix(message, "/")
-	message = "Hello " + message
-
-	w.Write([]byte(message))
-}
 
 func test(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("<html><body><h1>Test Page</h1><h2>Tokens</h2><ul>"))
@@ -35,70 +25,64 @@ func test(w http.ResponseWriter, r *http.Request) {
 }
 
 type Response struct {
-	Success string `json:"success,omitempty"`
-	Error   string `json:"error,omitempty"`
+	Ok     bool     `json:"ok,omitempty"`
+	Errors []string `json:"errors,omitempty"`
 }
 
-func str(x interface{}) string {
-	if x == nil {
-		return ""
+var Err = fmt.Errorf
+
+func handler(f func(*http.Request) []error) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		errs := f(r)
+		var errStr []string
+		for _, err := range errs {
+			errStr = append(errStr, fmt.Sprintf("%s", err))
+		}
+		json.NewEncoder(w).Encode(Response{Ok: errs == nil, Errors: errStr})
 	}
-	return fmt.Sprintf("%s", x)
 }
 
-func Return(w io.Writer, success, err interface{}) {
-	json.NewEncoder(w).Encode(Response{Success: str(success), Error: str(err)})
-}
-
-func registerToken(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func registerToken(r *http.Request) []error {
 	decoder := json.NewDecoder(r.Body)
 	data := make(map[string]string)
 	if err := decoder.Decode(&data); err != nil {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
 		s := buf.String()
-		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
-		return
+		return []error{Err("Error decoding json request. Error: [%s]. Request: [%s].", err, s)}
 	}
 	token, ok := data["token"]
 	if !ok {
-		Return(w, nil, "Key 'token' not found in request")
-		return
+		return []error{Err("Key 'token' not found in request")}
 	}
 	if err := RegisterToken(token); err != nil {
-		Return(w, nil, err)
-		return
+		return []error{err}
 	}
-	Return(w, token, nil)
+	return nil
 }
 
-func registerCrsid(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func registerCrsid(r *http.Request) []error {
 	decoder := json.NewDecoder(r.Body)
 	data := make(map[string]string)
 	if err := decoder.Decode(&data); err != nil {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
 		s := buf.String()
-		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
-		return
+		return []error{Err("Error decoding json request. Error: [%s]. Request: [%s].", err, s)}
 	}
 	token, ok := data["token"]
 	if !ok {
-		Return(w, nil, "Key 'token' not found in request")
-		return
+		return []error{Err("Key 'token' not found in request")}
 	}
 	crsid, ok := data["crsid"]
 	if !ok {
-		Return(w, nil, "Key 'crsid' not found in request")
-		return
+		return []error{Err("Key 'crsid' not found in request")}
 	}
 	if err := RegisterCrsid(token, crsid); err != nil {
-		Return(w, nil, err)
-		return
+		return []error{err}
 	}
-	Return(w, fmt.Sprintf("%s:%s", crsid, token), nil)
+	return nil
 }
 
 type PushRequest struct {
@@ -109,64 +93,59 @@ type PushRequest struct {
 	Data   map[string]string `json:"data"`
 }
 
-func pushAll(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func pushAll(r *http.Request) []error {
 	decoder := json.NewDecoder(r.Body)
 	var request PushRequest
 	if err := decoder.Decode(&request); err != nil {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
 		s := buf.String()
-		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
-		return
+		return []error{Err("Error decoding json request. Error: [%s]. Request: [%s].", err, s)}
 	}
 	var tokens []Token
 	for token := range TokenStore {
 		tokens = append(tokens, token)
 	}
-	json.NewEncoder(w).Encode(pushToTokens(tokens, request.Title, request.Body, request.Data))
+	return pushToTokens(tokens, request.Title, request.Body, request.Data)
 }
 
-func pushTokens(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func pushTokens(r *http.Request) []error {
 	decoder := json.NewDecoder(r.Body)
 	var request PushRequest
 	if err := decoder.Decode(&request); err != nil {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
 		s := buf.String()
-		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
-		return
+		return []error{Err("Error decoding json request. Error: [%s]. Request: [%s].", err, s)}
 	}
 	var tokens []Token
 	for _, token := range request.Tokens {
 		tokens = append(tokens, Token(token))
 	}
-	json.NewEncoder(w).Encode(pushToTokens(tokens, request.Title, request.Body, request.Data))
+	return pushToTokens(tokens, request.Title, request.Body, request.Data)
 }
 
-func pushCrsids(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func pushCrsids(r *http.Request) []error {
 	decoder := json.NewDecoder(r.Body)
 	var request PushRequest
 	if err := decoder.Decode(&request); err != nil {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
 		s := buf.String()
-		Return(w, nil, fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s))
-		return
+		return []error{Err("Error decoding json request. Error: [%s]. Request: [%s].", err, s)}
 	}
-	json.NewEncoder(w).Encode(pushToCrsids(request.Crsids, request.Title, request.Body, request.Data))
+	return pushToCrsids(request.Crsids, request.Title, request.Body, request.Data)
 }
 
 func main() {
-	http.HandleFunc("/register/token", registerToken)
-	http.HandleFunc("/register/crsid", registerCrsid)
-	http.HandleFunc("/push/all", pushAll)
-	http.HandleFunc("/push/tokens", pushTokens)
-	http.HandleFunc("/push/crsids", pushCrsids)
+	log.Println("Initialisation complete")
+	http.HandleFunc("/register/token", handler(registerToken))
+	http.HandleFunc("/register/crsid", handler(registerCrsid))
+	http.HandleFunc("/push/all", handler(pushAll))
+	http.HandleFunc("/push/tokens", handler(pushTokens))
+	http.HandleFunc("/push/crsids", handler(pushCrsids))
 	http.HandleFunc("/test", test)
-	http.HandleFunc("/", sayHello)
 
+	log.Println("Server now running")
 	log.Fatal(http.ListenAndServe(":6662", nil))
 }

@@ -26,6 +26,7 @@ func tokenInit() {
 	TokenToId = make(map[Token]string)
 	IdToToken = make(map[string]Token)
 
+	log.Println("Reading tokens from file...")
 	tokenFile := bufio.NewScanner(TokenFile)
 	for tokenFile.Scan() {
 		TokenStore[Token(tokenFile.Text())] = struct{}{}
@@ -34,6 +35,7 @@ func tokenInit() {
 		log.Fatal("Failed to read token file: ", err)
 	}
 
+	log.Println("Reading crsids from file...")
 	idFile := bufio.NewScanner(IdFile)
 	for idFile.Scan() {
 		line := strings.Split(idFile.Text(), ":")
@@ -42,6 +44,8 @@ func tokenInit() {
 	if err := idFile.Err(); err != nil {
 		log.Fatal("Failed to read crsid file: ", err)
 	}
+
+	log.Println("Files read")
 }
 
 func storeCrsid(token Token, crsid string) {
@@ -58,6 +62,7 @@ func storeCrsid(token Token, crsid string) {
 }
 
 func RegisterToken(tokenStr string) error {
+	log.Println("Registering token ", tokenStr)
 	token, err := expo.NewExponentPushToken(Token(tokenStr))
 	if err != nil {
 		return err
@@ -68,12 +73,14 @@ func RegisterToken(tokenStr string) error {
 
 	TokenStore[token] = struct{}{}
 	if _, err := fmt.Fprintf(TokenFile, "%s\n", token); err != nil {
-		return fmt.Errorf("Encountered an error writing token to file: %s", err)
+		return Err("Encountered an error writing token to file: %s", err)
 	}
+	log.Println("Successfully registered token ", tokenStr)
 	return nil
 }
 
 func RegisterCrsid(tokenStr, crsid string) error {
+	log.Println("Registering crsid ", crsid, " to token ", tokenStr)
 	if err := RegisterToken(tokenStr); err != nil {
 		return err
 	}
@@ -86,5 +93,6 @@ func RegisterCrsid(tokenStr, crsid string) error {
 	if _, err := fmt.Fprintf(IdFile, "%s:%s\n", crsid, token); err != nil {
 		return fmt.Errorf("Encountered an error writing crsid to file: %s", err)
 	}
+	log.Println("Successfully registered crsid ", crsid, " to token ", tokenStr)
 	return nil
 }
