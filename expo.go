@@ -44,6 +44,9 @@ func pushToTokens(tokens []Token, title, body string, data map[string]string) []
 
 func pushToCrsids(crsids []string, title, body string, data map[string]string) []error {
 	notificationData, _ := json.Marshal(map[string]string{"title": title, "body": body})
+	if data == nil {
+		data = make(map[string]string)
+	}
 	data["notification"] = string(notificationData)
 	var messages []expo.PushMessage
 	var errs []error
