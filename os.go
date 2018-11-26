@@ -19,18 +19,18 @@ func init() {
 	var err error
 
 	LogFile, err = os.OpenFile(time.Now().Format("log/2006-01-02.15-04-05.log"),
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0440)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.SetOutput(io.MultiWriter(os.Stdout, LogFile))
 	log.Println("Logging to file")
 
-	TokenFile, err = os.OpenFile("log/tokens", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+	TokenFile, err = os.OpenFile("log/tokens", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0460)
 	if err != nil {
 		log.Fatal(err)
 	}
-	IdFile, err = os.OpenFile("log/crsids", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+	IdFile, err = os.OpenFile("log/crsids", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0460)
 	if err != nil {
 		log.Fatal(err)
 	}
