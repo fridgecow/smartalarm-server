@@ -137,6 +137,25 @@ func pushCrsids(r *http.Request) []error {
 	return pushToCrsids(request.Crsids, request.Title, request.Body, request.Data)
 }
 
+type StoreLocationRequest struct {
+	Token     string     `json:"token"`
+	Crsid     string     `json:"string"`
+	Locations []Location `json:"locations"`
+}
+
+func storeLocations(r *http.Request) []error {
+	decoder := json.NewDecoder(r.Body)
+	var request StoreLocationRequest
+	if err := decoder.Decode(&request); err != nil {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		s := buf.String()
+		return []error{Err("Error decoding json request. Error: [%s]. Request: [%s].", err, s)}
+	}
+	StoreLocation(request.Token, request.Crsid, request.Locations)
+	return nil
+}
+
 func main() {
 	log.Println("Initialisation complete")
 	http.HandleFunc("/register/token", handler(registerToken))
@@ -144,6 +163,7 @@ func main() {
 	http.HandleFunc("/push/all", handler(pushAll))
 	http.HandleFunc("/push/tokens", handler(pushTokens))
 	http.HandleFunc("/push/crsids", handler(pushCrsids))
+	http.HandleFunc("/locations/store", handler(storeLocations))
 	http.HandleFunc("/test", test)
 
 	log.Println("Server now running")

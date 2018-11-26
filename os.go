@@ -9,9 +9,12 @@ import (
 )
 
 var (
-	LogFile   *os.File
-	TokenFile *os.File
-	IdFile    *os.File
+	LogFile      *os.File
+	TokenFile    *os.File
+	IdFile       *os.File
+	LocationFile *os.File
+
+	LocationBuffer chan Location
 )
 
 func init() {
@@ -34,6 +37,19 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	LocationFile, err = os.OpenFile("log/locations", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0440)
+	if err != nil {
+		log.Fatal(err)
+	}
+	LocationBuffer = make(chan Location, 512)
+	go func() {
+		for location := range LocationBuffer {
+			if _, err := fmt.Fprint(LocationFile, location); err != nil {
+				// do anything?
+			}
+		}
+	}()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
