@@ -1,8 +1,7 @@
 package main
 
 import (
-	"log"
-	"sync"
+	"fmt"
 )
 
 type Location struct {
@@ -13,7 +12,7 @@ type Location struct {
 }
 
 func (loc Location) String() string {
-	return fmt.Sprintf(LocationFile, "%s:(%f,%f):[%s]\n", loc.Token, loc.Latitude, loc.Longitude, loc.TimeStamp)
+	return fmt.Sprintf("%s:(%f,%f):[%d]\n", loc.Token, loc.Latitude, loc.Longitude, loc.TimeStamp)
 }
 
 func StoreLocation(tokenStr string, crsid string, locs []Location) {

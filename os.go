@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -38,7 +39,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	LocationFile, err = os.OpenFile("log/locations", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0440)
+	LocationFile, err = os.OpenFile("log/locations", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0460)
 	if err != nil {
 		log.Fatal(err)
 	}

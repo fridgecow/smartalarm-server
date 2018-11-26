@@ -156,6 +156,10 @@ func storeLocations(r *http.Request) []error {
 	return nil
 }
 
+func serveLocations(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "log/locations")
+}
+
 func main() {
 	log.Println("Initialisation complete")
 	http.HandleFunc("/register/token", handler(registerToken))
@@ -164,6 +168,7 @@ func main() {
 	http.HandleFunc("/push/tokens", handler(pushTokens))
 	http.HandleFunc("/push/crsids", handler(pushCrsids))
 	http.HandleFunc("/locations/store", handler(storeLocations))
+	http.HandleFunc("/locations/get", serveLocations)
 	http.HandleFunc("/test", test)
 
 	log.Println("Server now running")
