@@ -25,8 +25,9 @@ func test(w http.ResponseWriter, r *http.Request) {
 }
 
 type Response struct {
-	Ok     bool     `json:"ok,omitempty"`
-	Errors []string `json:"errors,omitempty"`
+	Ok       bool      `json:"ok,omitempty"`
+	Errors   []string  `json:"errors,omitempty"`
+	Location *Location `json:"location,omitempty"`
 }
 
 var Err = fmt.Errorf
@@ -139,7 +140,6 @@ func pushCrsids(r *http.Request) []error {
 
 type StoreLocationRequest struct {
 	Token     string     `json:"token"`
-	Crsid     string     `json:"string"`
 	Locations []Location `json:"locations"`
 }
 
@@ -152,12 +152,47 @@ func storeLocations(r *http.Request) []error {
 		s := buf.String()
 		return []error{Err("Error decoding json request. Error: [%s]. Request: [%s].", err, s)}
 	}
-	StoreLocation(request.Token, request.Crsid, request.Locations)
+	StoreLocation(request.Token, request.Locations)
 	return nil
 }
 
 func serveLocations(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "log/locations")
+	w.Header().Set("Content-Type", "application/json")
+	locations := LatestLocations()
+	json.NewEncoder(w).Encode(locations)
+}
+
+func getCrsidLocation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	decoder := json.NewDecoder(r.Body)
+	data := make(map[string]string)
+	if err := decoder.Decode(&data); err != nil {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		s := buf.String()
+		json.NewEncoder(w).Encode(Response{Ok: false, Errors: []string{fmt.Sprintf("Error decoding json request. Error: [%s]. Request: [%s].", err, s)}})
+		return
+	}
+	crsid, ok := data["crsid"]
+	if !ok {
+		json.NewEncoder(w).Encode(Response{Ok: false, Errors: []string{"Key 'crsid' not found in request"}})
+		return
+	}
+	IdMutex.Lock()
+	token, ok := IdToToken[crsid]
+	IdMutex.Unlock()
+	if !ok {
+		json.NewEncoder(w).Encode(Response{Ok: false, Errors: []string{fmt.Sprintf("Crsid '%s' not associated to a token", crsid)}})
+		return
+	}
+	LocationMutex.Lock()
+	loc, ok := LatestLocation[token]
+	LocationMutex.Unlock()
+	if !ok {
+		json.NewEncoder(w).Encode(Response{Ok: false, Errors: []string{fmt.Sprintf("Crsid '%s' has no associated location data", crsid)}})
+		return
+	}
+	json.NewEncoder(w).Encode(Response{Ok: true, Location: &loc})
 }
 
 func main() {
@@ -168,7 +203,8 @@ func main() {
 	http.HandleFunc("/push/tokens", handler(pushTokens))
 	http.HandleFunc("/push/crsids", handler(pushCrsids))
 	http.HandleFunc("/locations/store", handler(storeLocations))
-	http.HandleFunc("/locations/get", serveLocations)
+	http.HandleFunc("/locations/get/all", serveLocations)
+	http.HandleFunc("/locations/get/crsid", getCrsidLocation)
 	http.HandleFunc("/test", test)
 
 	log.Println("Server now running")

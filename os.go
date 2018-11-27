@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 )
 
@@ -16,6 +17,8 @@ var (
 	LocationFile *os.File
 
 	LocationBuffer chan Location
+	LocationWait   sync.WaitGroup
+	LocationDone   bool
 )
 
 func init() {
@@ -49,6 +52,7 @@ func init() {
 			if _, err := fmt.Fprint(LocationFile, location); err != nil {
 				// do anything?
 			}
+			LocationWait.Done()
 		}
 	}()
 
@@ -56,17 +60,16 @@ func init() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for sig := range c {
-			log.Printf("Received OS interrupt: %s. Committing changes to disk and quitting.", sig)
-			if LogFile != nil {
-				LogFile.Close()
-			}
-			if TokenFile != nil {
-				TokenFile.Close()
-			}
-			if IdFile != nil {
-				IdFile.Close()
-			}
-			// TODO: Ensure all data is pushed to disk
+			log.Printf("Received OS interrupt: %s. Cleaning up, ensuring changes are committed to disk, and quitting.", sig)
+
+			LogFile.Close()
+			TokenFile.Close()
+			IdFile.Close()
+
+			LocationDone = true
+			LocationWait.Wait()
+			LocationFile.Close()
+
 			os.Exit(1)
 		}
 	}()
