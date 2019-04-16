@@ -13,9 +13,9 @@ There is at least one release binary [under the Releases tab](https://github.com
 
 The server is written in Go, so make sure your go environment is set up. 
 
-1. `git clone` using your preferred method.
-2. `go get .` to fetch dependencies.
-3. Setup environment as required.
+1. `go get github.com/fridgecow/smartalarm-server` or `git clone` to fetch project.
+2. `cd $GOPATH/src/github.com/fridgecow/smartalarm-server` if using `go get`
+3. Setup environment as required (see below).
 5. `go run .` will run the server immediately. `go install .` or `go build .` will create a binary for installation elsewhere.
 
 ### Setup Environment
