@@ -22,3 +22,15 @@ These must be set or you will encounter errors.
 |----------------------|------------------------------------|
 |`SMARTALARM_DBPASS`   | Password for database access       |
 |`SMARTALARM_EMAILPASS`| Password for email SMTP connection |
+
+## API Description
+
+- `GET /ping`: returns "☑", does not log. Useful to check if the server is up, although it does not perform any DB or SMTP connectivity checks.
+- `GET /v1/add/[email]`: begins subscription process. Sends confirmation email to "email".
+- `GET /v1/confirm/[email]/[token]`: confirms email address if "token" is correct for "email".
+- `GET /v1/unsub/[email]/[token]`: unsubscribes email address if "token" is correct for "email".
+- `POST /v1/csv/[email] csv=[csv_data] tz=[timezone]`: exports "csv_data" to "email", performing summaries and producing graphs. "timezone" should be the geographic timezone name, e.g "Europe/London", and this lets the server parse unix timestamps correctly.
+
+## Possible Further Features
+
+- Support for confirmation via email reply.
