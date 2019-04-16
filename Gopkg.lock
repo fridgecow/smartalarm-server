@@ -2,16 +2,102 @@
 
 
 [[projects]]
-  branch = "master"
-  digest = "1:606d1820e2521700b2604019ddc84c95642b2be06242206a4c6322b1c465b2c9"
-  name = "github.com/oliveroneill/exponent-server-sdk-golang"
-  packages = ["sdk"]
+  digest = "1:78bf6c6a98a126bcec01b33e0b1e19521663269852a7dc52c38f1d4f84529cb1"
+  name = "github.com/badoux/checkmail"
+  packages = ["."]
   pruneopts = "UT"
-  revision = "05bf6f17980f89ec1a1b9599813658b6381e7408"
+  revision = "9661bd69e9ad6fce1f7579022bdab0440807722a"
+  version = "v1.1"
+
+[[projects]]
+  digest = "1:ec6f9bf5e274c833c911923c9193867f3f18788c461f76f05f62bb1510e0ae65"
+  name = "github.com/go-sql-driver/mysql"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "72cd26f257d44c1114970e19afddcd812016007e"
+  version = "v1.4.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:62c57507df491b657e9ae2645f30958d9964c8eeb380600469eedc951ebb3a0e"
+  name = "github.com/golang/freetype"
+  packages = [
+    "raster",
+    "truetype",
+  ]
+  pruneopts = "UT"
+  revision = "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
+
+[[projects]]
+  digest = "1:d5f97fc268267ec1b61c3453058c738246fc3e746f14b1ae25161513b7367b0c"
+  name = "github.com/gorilla/mux"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c5c6c98bc25355028a63748a498942a6398ccd22"
+  version = "v1.7.1"
+
+[[projects]]
+  digest = "1:cf762a0ce01d48d8ac03f717aa41f66b655abea67c616d89994ce091a2cc6831"
+  name = "github.com/wcharczuk/go-chart"
+  packages = [
+    ".",
+    "drawing",
+    "matrix",
+    "roboto",
+    "seq",
+    "util",
+  ]
+  pruneopts = "UT"
+  revision = "7c3982fe3d8ab0c9eea9ab5d2aced51e45d447bc"
+  version = "v2.0.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:8aa52c7f7476f9ce660f5db479eb0e19681b58783442f33459954757fc6732fe"
+  name = "golang.org/x/image"
+  packages = [
+    "draw",
+    "font",
+    "math/f64",
+    "math/fixed",
+  ]
+  pruneopts = "UT"
+  revision = "3fc05d484e9f77dd51816890e05f2602e4ca4d65"
+
+[[projects]]
+  digest = "1:c25289f43ac4a68d88b02245742347c94f1e108c534dda442188015ff80669b3"
+  name = "google.golang.org/appengine"
+  packages = ["cloudsql"]
+  pruneopts = "UT"
+  revision = "54a98f90d1c46b7731eb8fb305d2a321c30ef610"
+  version = "v1.5.0"
+
+[[projects]]
+  branch = "v3"
+  digest = "1:7388652e2215a3f45d341d58766ed58317971030eb1cbd75f005f96ace8e9196"
+  name = "gopkg.in/alexcesaro/quotedprintable.v3"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2caba252f4dc53eaf6b553000885530023f54623"
+
+[[projects]]
+  digest = "1:3806f369b846160fcbde19bdcf93790868defe7c58d1bb6bc8d974c5b8f8dc1e"
+  name = "gopkg.in/mail.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f59b9b83a4e522098e3d3eb94e6f81850ad6e973"
+  version = "v2.3.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/oliveroneill/exponent-server-sdk-golang/sdk"]
+  input-imports = [
+    "github.com/badoux/checkmail",
+    "github.com/go-sql-driver/mysql",
+    "github.com/gorilla/mux",
+    "github.com/wcharczuk/go-chart",
+    "github.com/wcharczuk/go-chart/drawing",
+    "gopkg.in/mail.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
