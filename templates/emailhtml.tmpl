@@ -1,0 +1,34 @@
+{{ define "export" }}
+{{ template "header" }}
+<img src='cid:image.png' style="width: 100% !important"/><br />
+
+{{ with .Statistics }}
+
+  <div style="text-align: center; margin-top: 10px;">
+    You slept
+    <h2>{{ duration .SleepDuration }}</h2>
+    From {{ time .FirstSleep }} to {{ time .LastWake }}<br />
+    {{ if .HeartRateEnabled }}
+      ({{ multDuration .REMPercent .SleepDuration }} REM, {{ multDuration .LightPercent .SleepDuration }} Light Sleep, {{ multDuration .SleepEfficiencyFSLW .SleepDuration }} Deep Sleep)
+    {{ else }}
+      ({{ multDuration .SleepEfficiencyFSLW .SleepDuration }} Deep Sleep)
+    {{ end }}
+  </div>
+  {{ if .SummaryExport }}
+    <hr />
+    This is an export of pre-summarized data from your watch, so it does not have motion or heart rate measurements. To see this information, perform an export immediately after tracking has ended.<br />
+  {{ end }}
+  <hr />
+  <b>Tracking Started:</b> {{ time .StartTime }}<br />
+  <b>First Detected Sleep Time:</b> {{ time .FirstSleep }}<br />
+  <b>Deep Sleep (Tracking Start → End):</b> {{ percent .SleepEfficiency }}%<br />
+  <b>Deep Sleep (First Sleep → Last Wake):</b> {{ percent .SleepEfficiencyFSLW }}%<br />
+  {{ if .HeartRateEnabled }}
+  <b>REM Sleep:</b> {{ percent .REMPercent }}% (Estimated)<br /> 
+  <b>Light Sleep:</b> {{ percent .LightPercent }}%<br />
+  {{ end }}
+  <b>Last Detected Wake Time:</b> {{ time .LastWake }}<br />
+  <b>Tracking Ended:</b> {{ time .EndTime }}
+{{ end }}
+{{ template "footer" dict "Unsubscribe" true "Token" .Token "Email" .Email }}
+{{ end }}

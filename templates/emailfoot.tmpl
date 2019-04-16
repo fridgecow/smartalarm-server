@@ -1,0 +1,14 @@
+{{ define "footer" }}
+<br />
+<hr />
+<i>Sleep data is not stored - see the privacy policy for more information.</i><br />
+<i>Emailed summaries may be different from those you see on your watch - they are computed seperately.</i><br/>
+<i>Please note that any analysis or summary is likely to be inaccurate.</i><br/>
+
+<div style="text-align: center; width: 100%;">
+{{ if .Unsubscribe }}
+  <b><a href='https://smartalarm.fridgecow.com/unsub/{{ .Email }}/{{ .Token }}'>Unsubscribe</a></b> |
+{{ end }} 
+<a href='https://github.com/fridgecow/smartalarm/wiki/Sleep-Detection'>About Sleep Analysis</a> | <a href='https://www.fridgecow.com/smartalarm/privacy.html'>Privacy Policy</a> | <a href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MVMH9K82Y3TAE'>Donate</a>
+</div>
+{{ end }}
