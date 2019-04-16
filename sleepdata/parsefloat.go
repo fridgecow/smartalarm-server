@@ -1,9 +1,9 @@
 package sleepdata
 
 import (
-  "strings"
-  "strconv"
-  "math"
+	"math"
+	"strconv"
+	"strings"
 )
 
 // From https://gist.github.com/yyscamper/5657c360fadd6701580f3c0bcca9f63a

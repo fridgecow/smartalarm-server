@@ -2,11 +2,11 @@ package sleepdata
 
 import (
 	"fmt"
+	"github.com/wcharczuk/go-chart"
+	"github.com/wcharczuk/go-chart/drawing"
 	"math"
 	"sort"
 	"time"
-	"github.com/wcharczuk/go-chart"
-  "github.com/wcharczuk/go-chart/drawing"
 )
 
 var timeStep = time.Minute
@@ -14,11 +14,11 @@ var sleepWeights = [7]int{106, 54, 58, 76, 230, 74, 67}
 var sleepProduct = 0.001
 
 type SleepDataPoint struct {
-	Time      time.Time
-	Motion    float64
-	HeartRate float64
-	SDNN      float64
-  HeartRateVariabilityEstimate float64
+	Time                         time.Time
+	Motion                       float64
+	HeartRate                    float64
+	SDNN                         float64
+	HeartRateVariabilityEstimate float64
 
 	SleepDiscriminant float64
 	Sleeping          bool
@@ -31,12 +31,12 @@ type SleepStatistics struct {
 	FirstSleep          time.Time
 	SleepEfficiency     float64
 	SleepEfficiencyFSLW float64
-  REMPercent float64
-  LightPercent float64
+	REMPercent          float64
+	LightPercent        float64
 	LastWake            time.Time
 	EndTime             time.Time
 
-  SleepDuration time.Duration
+	SleepDuration time.Duration
 }
 
 type SleepData struct {
@@ -75,21 +75,19 @@ func (sd SleepData) calculateREMThreshold() float64 {
 		lowpass[i] = state
 	}
 
-
 	// Compute delta from original heart rate
 	deltas := make([]float64, len(sd.Data))
 	for i, x := range lowpass {
 		deltas[i] = math.Abs(x - sd.Data[i].HeartRate)
-    sd.Data[i].HeartRateVariabilityEstimate = deltas[i]
+		sd.Data[i].HeartRateVariabilityEstimate = deltas[i]
 	}
-
 
 	// Filter out any variability below 18
 	var filtered []float64
 	for _, x := range deltas {
-    if x > 18 {
-      filtered = append(filtered, x)
-    }
+		if x > 18 {
+			filtered = append(filtered, x)
+		}
 	}
 
 	if len(filtered) == 0 {
@@ -101,87 +99,86 @@ func (sd SleepData) calculateREMThreshold() float64 {
 		return filtered[i] < filtered[j]
 	})
 
-
 	return filtered[int(math.Round(0.8*float64(len(filtered))))]
 }
 
 func (sd SleepData) GetMotionSeries() chart.TimeSeries {
-  x := make([]time.Time, len(sd.Data))
-  y := make([]float64, len(sd.Data))
+	x := make([]time.Time, len(sd.Data))
+	y := make([]float64, len(sd.Data))
 
-  for i, dp := range(sd.Data) {
-    x[i] = dp.Time
-    y[i] = dp.Motion
-  }
+	for i, dp := range sd.Data {
+		x[i] = dp.Time
+		y[i] = dp.Motion
+	}
 
-  return chart.TimeSeries{
-    Name: "Motion",
-    Style: chart.Style{
-      Show: true,
-      StrokeColor: drawing.ColorFromHex("008080"),
-    },
-    XValues: x,
-    YValues: y,
-  }
+	return chart.TimeSeries{
+		Name: "Motion",
+		Style: chart.Style{
+			Show:        true,
+			StrokeColor: drawing.ColorFromHex("008080"),
+		},
+		XValues: x,
+		YValues: y,
+	}
 }
 
 func (sd SleepData) GetHeartRateSeries() chart.TimeSeries {
-  if !sd.useHRM {
-    return chart.TimeSeries{}
-  }
+	if !sd.useHRM {
+		return chart.TimeSeries{}
+	}
 
-  x := make([]time.Time, len(sd.Data))
-  y := make([]float64, len(sd.Data))
+	x := make([]time.Time, len(sd.Data))
+	y := make([]float64, len(sd.Data))
 
-  for i, dp := range(sd.Data) {
-    x[i] = dp.Time
-    y[i] = dp.HeartRate
-  }
+	for i, dp := range sd.Data {
+		x[i] = dp.Time
+		y[i] = dp.HeartRate
+	}
 
-  return chart.TimeSeries{
-    Name: "Heart Rate",
-    Style: chart.Style{
-      Show: true,
-      StrokeColor: drawing.ColorFromHex("800000"),
-    },
-    YAxis: chart.YAxisSecondary,
-    XValues: x,
-    YValues: y,
-  }
+	return chart.TimeSeries{
+		Name: "Heart Rate",
+		Style: chart.Style{
+			Show:        true,
+			StrokeColor: drawing.ColorFromHex("800000"),
+		},
+		YAxis:   chart.YAxisSecondary,
+		XValues: x,
+		YValues: y,
+	}
 }
 
 func (sd SleepData) GetMaxMotion() float64 {
-  if len(sd.Data) == 0 {
-    return 1000
-  }
+	if len(sd.Data) == 0 {
+		return 1000
+	}
 
-  var max float64
-  for _, dp := range(sd.Data) {
-    if dp.Motion > max {
-      max = dp.Motion
-    }
-  }
+	var max float64
+	for _, dp := range sd.Data {
+		if dp.Motion > max {
+			max = dp.Motion
+		}
+	}
 
-  return max
+	return max
 }
 
 func (sd SleepData) GetREMInRegion(start int, end int) bool {
-  if !sd.useHRM {
-    return false
-  }
+	if !sd.useHRM {
+		return false
+	}
 
-  // Compute "any" between i and j 
-  for i := start; i <= end; i++ {
-    if sd.useSDNN {
-      if sd.Data[i].SDNN > sd.remThreshold {
-        return true
-      }
-    } else if sd.Data[i].HeartRateVariabilityEstimate > sd.remThreshold {
-      return true
-    }
-  }
+	// Compute "any" between i and j
+	for i := start; i <= end; i++ {
+		if sd.useSDNN {
+			if sd.Data[i].SDNN > sd.remThreshold {
+				return true
+			}
+		} else if sd.Data[i].HeartRateVariabilityEstimate > sd.remThreshold {
+			return true
+		}
+	}
 
-  return false
+	return false
 }
 
 func MakeSleepData(data [][]string, tz time.Location) (sleepData SleepData, e error) {
@@ -207,7 +204,7 @@ func MakeSleepData(data [][]string, tz time.Location) (sleepData SleepData, e er
 		if err != nil {
 			return sleepData, err
 		}
-    dp.Motion = math.Max(dp.Motion, 0)
+		dp.Motion = math.Max(dp.Motion, 0)
 
 		if len(point) < 3 {
 			dataPoints = append(dataPoints, dp)
@@ -264,19 +261,19 @@ func MakeSleepData(data [][]string, tz time.Location) (sleepData SleepData, e er
 		secsTarget := currentTime.Unix()
 
 		ratio := math.Max(
-      math.Min(
-        float64(secsTarget-secsLower) / float64(secsUpper-secsLower),
-        1,
-      ),
-      0,
-    )
+			math.Min(
+				float64(secsTarget-secsLower)/float64(secsUpper-secsLower),
+				1,
+			),
+			0,
+		)
 
 		interpDataPoints = append(interpDataPoints, SleepDataPoint{
-      Time: currentTime,
-      Motion: math.Max(math.Round(dpLower.Motion*(1-ratio) + dpUpper.Motion*ratio), 0),
-      HeartRate: dpLower.HeartRate*(1-ratio) + dpUpper.HeartRate*ratio,
-      SDNN: dpLower.SDNN*(1-ratio) + dpUpper.SDNN*ratio,
-      HeartRateVariabilityEstimate: dpLower.HeartRateVariabilityEstimate*(1-ratio) + dpUpper.HeartRateVariabilityEstimate*ratio,
+			Time:                         currentTime,
+			Motion:                       math.Max(math.Round(dpLower.Motion*(1-ratio)+dpUpper.Motion*ratio), 0),
+			HeartRate:                    dpLower.HeartRate*(1-ratio) + dpUpper.HeartRate*ratio,
+			SDNN:                         dpLower.SDNN*(1-ratio) + dpUpper.SDNN*ratio,
+			HeartRateVariabilityEstimate: dpLower.HeartRateVariabilityEstimate*(1-ratio) + dpUpper.HeartRateVariabilityEstimate*ratio,
 		})
 	}
 
