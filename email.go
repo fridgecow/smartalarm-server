@@ -13,7 +13,12 @@ func init(){
   emailChan = make(chan *mail.Message)
 
   go func() {
-      d := mail.NewDialer("smtp.gmail.com", 587, "smartalarm@fridgecow.com", os.Getenv("SMARTALARM_EMAILPASS"))
+      d := mail.NewDialer(
+        os.Getenv("SMARTALARM_EMAILHOST"),
+        587,
+        os.Getenv("SMARTALARM_EMAILADDR"),
+        os.Getenv("SMARTALARM_EMAILPASS"),
+      )
       d.StartTLSPolicy = mail.MandatoryStartTLS
 
       var s mail.SendCloser

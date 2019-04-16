@@ -112,9 +112,9 @@ func handler(f func(*http.Request) (string, error)) func(http.ResponseWriter, *h
 func sendEmail(to string, subject string, f func(io.Writer) error, files ...AttachmentContainer) error {
 	msg := gomail.NewMessage()
 
-	msg.SetAddressHeader("From", "smartalarm@fridgecow.com", "Smart Alarm")
+	msg.SetAddressHeader("From", os.Getenv("SMARTALARM_EMAILADDR"), "Smart Alarm")
 	msg.SetHeader("To", to)
-	msg.SetHeader("ReplyTo", "tom@fridgecow.com")
+	msg.SetHeader("ReplyTo", os.Getenv("SMARTALARM_EMAILREPLY"))
 
 	msg.SetHeader("Subject", subject)
 	msg.SetBody("text/plain", "Thank you for using Smart Alarm. Please switch to an HTML-capable client to view this email.")
@@ -411,7 +411,10 @@ func main() {
 	var err error
 
 	// Database Connection
-	db, err = sql.Open("mysql", "tcb38:"+os.Getenv("SMARTALARM_DBPASS")+"@tcp(127.0.0.1)/tcb38?parseTime=true")
+	db, err = sql.Open(
+    "mysql",
+    os.Getenv("SMARTALARM_DBUSER")+":"+os.Getenv("SMARTALARM_DBPASS")+"@"+os.Getenv("SMARTALARM_DBHOST")+"/"+os.Getenv("SMARTALARM_DBNAME")+"?parseTime=true",
+  )
 	if err != nil {
 		log.Fatalf("Error on initializing database connection: %s", err.Error())
 	}

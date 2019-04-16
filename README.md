@@ -14,14 +14,23 @@ The server is written in Go, so make sure your go environment is set up. You wil
 
 The server runs on port 6662 by default. If localhost:6662/ping returns "☑", the server is up and running.
 
+To use your server with Smart Alarm on your watch, you can edit the hostname in Settings. Since Wear OS's keyboard doesn't feature ":" by default, ";" will be replaced with ":".
+
 ## Environment Variables
 
-These must be set or you will encounter errors.
+These must be set or you will encounter errors. It may be wise to wrap the smartalarm-server binary in a bash script which sets these environment variables, or use some other deployment technique.
 
-| Name                 | Usage                              |
-|----------------------|------------------------------------|
-|`SMARTALARM_DBPASS`   | Password for database access       |
-|`SMARTALARM_EMAILPASS`| Password for email SMTP connection |
+| Name                  | Usage                                          |
+|-----------------------|------------------------------------------------|
+|`SMARTALARM_DBHOST`    | Host for database connection                   |
+|`SMARTALARM_DBNAME`    | Name of database to connect to                 |
+|`SMARTALARM_DBPASS`    | Password for database access                   |
+|`SMARTALARM_DBUSER`    | Username for database access                   |
+|-----------------------|------------------------------------------------|
+|`SMARTALARM_EMAILADDR` | Address for SMTP connection and "From:" header |
+|`SMARTALARM_EMAILHOST` | Host for SMTP connection                       |
+|`SMARTALARM_EMAILPASS` | Password for email SMTP connection             |
+|`SMARTALARM_EMAILREPLY`| Address for "ReplyTo:" header                  |
 
 ## API Description
 
