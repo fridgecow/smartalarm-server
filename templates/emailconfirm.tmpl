@@ -1,5 +1,5 @@
 {{ define "confirmation" }}
 {{ template "header" }}
-<a href='https://smartalarm.fridgecow.com/confirm/{{ .Email }}/{{ .Token }}'>Click here to confirm that you would like to receive sleep data at this email address</a>
+<a href='https://smartalarm.fridgecow.com/v1/confirm/{{ .Email }}/{{ .Token }}'>Click here to confirm that you would like to receive sleep data at this email address</a>
 {{ template "footer" dict "Unsubscribe" false }}
 {{end}}
