@@ -472,6 +472,12 @@ func main() {
 
 	r.HandleFunc("/ping", handlerNoLog(func(r *http.Request) (string, error) { return "☑", nil }))
 
+	srv := &http.Server{
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		Handler:      r,
+		Addr:         ":6662",
+	}
 	log.Println("Starting server...")
-	log.Fatal(http.ListenAndServe(":6662", r))
+	log.Fatal(srv.ListenAndServe())
 }
