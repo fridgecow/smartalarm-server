@@ -38,7 +38,7 @@
 
 [[projects]]
   digest = "1:cf762a0ce01d48d8ac03f717aa41f66b655abea67c616d89994ce091a2cc6831"
-  name = "github.com/wcharczuk/go-chart"
+  name = "github.com/Strubbl/go-chart"
   packages = [
     ".",
     "drawing",
@@ -95,8 +95,8 @@
     "github.com/badoux/checkmail",
     "github.com/go-sql-driver/mysql",
     "github.com/gorilla/mux",
-    "github.com/wcharczuk/go-chart",
-    "github.com/wcharczuk/go-chart/drawing",
+    "github.com/Strubbl/go-chart",
+    "github.com/Strubbl/go-chart/drawing",
     "gopkg.in/mail.v2",
   ]
   solver-name = "gps-cdcl"

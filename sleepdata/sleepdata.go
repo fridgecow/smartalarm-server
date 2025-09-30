@@ -2,8 +2,8 @@ package sleepdata
 
 import (
 	"fmt"
-	"github.com/wcharczuk/go-chart"
-	"github.com/wcharczuk/go-chart/drawing"
+	"github.com/Strubbl/go-chart/v2"
+	"github.com/Strubbl/go-chart/v2/drawing"
 	"math"
 	"sort"
 	"time"
@@ -114,7 +114,7 @@ func (sd SleepData) GetMotionSeries() chart.TimeSeries {
 	return chart.TimeSeries{
 		Name: "Motion",
 		Style: chart.Style{
-			Show:        true,
+			Hidden:        false,
 			StrokeColor: drawing.ColorFromHex("008080"),
 		},
 		XValues: x,
@@ -138,7 +138,7 @@ func (sd SleepData) GetHeartRateSeries() chart.TimeSeries {
 	return chart.TimeSeries{
 		Name: "Heart Rate",
 		Style: chart.Style{
-			Show:        true,
+			Hidden:        false,
 			StrokeColor: drawing.ColorFromHex("800000"),
 		},
 		YAxis:   chart.YAxisSecondary,

@@ -9,7 +9,7 @@ import (
 	"github.com/fridgecow/smartalarm-server/sleepdata"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
-	"github.com/wcharczuk/go-chart"
+	"github.com/Strubbl/go-chart/v2"
 	gomail "gopkg.in/mail.v2"
 	"html/template"
 	"io"
@@ -323,7 +323,7 @@ func sendCSV(r *http.Request) (string, error) {
 
 	graph := chart.Chart{
 		Title:      sleepSummary.Title,
-		TitleStyle: chart.StyleShow(),
+		TitleStyle: chart.Style{},
 
 		Width: 1200,
 		Background: chart.Style{
@@ -334,19 +334,19 @@ func sendCSV(r *http.Request) (string, error) {
 
 		XAxis: chart.XAxis{
 			Name:           "Time",
-			NameStyle:      chart.StyleShow(),
-			Style:          chart.StyleShow(),
+			NameStyle:      chart.Style{},
+			Style:          chart.Style{},
 			ValueFormatter: chart.TimeValueFormatterWithFormat("15:04"),
 		},
 		YAxis: chart.YAxis{
 			Name:      "Motion (m/s²)",
-			NameStyle: chart.StyleShow(),
-			Style:     chart.StyleShow(),
+			NameStyle: chart.Style{},
+			Style:     chart.Style{},
 		},
 		YAxisSecondary: chart.YAxis{
 			Name:      "Heart Rate (bpm)",
-			NameStyle: chart.StyleShow(),
-			Style:     chart.StyleShow(),
+			NameStyle: chart.Style{},
+			Style:     chart.Style{},
 		},
 	}
 
@@ -356,8 +356,8 @@ func sendCSV(r *http.Request) (string, error) {
 			Max: 1000,
 		}
 
-		graph.YAxis.Style.Show = false
-		graph.YAxisSecondary.Style.Show = false
+		graph.YAxis.Style.Hidden = true
+		graph.YAxisSecondary.Style.Hidden = true
 
 		graph.Series = sleepSummary.GetChartBands()
 	} else {
@@ -369,7 +369,7 @@ func sendCSV(r *http.Request) (string, error) {
 	}
 
 	if !sleepSummary.Statistics.HeartRateEnabled {
-		graph.YAxisSecondary.Style.Show = false
+		graph.YAxisSecondary.Style.Hidden = true
 	}
 
 	graph.Elements = []chart.Renderable{

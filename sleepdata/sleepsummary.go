@@ -1,8 +1,8 @@
 package sleepdata
 
 import (
-	"github.com/wcharczuk/go-chart"
-	"github.com/wcharczuk/go-chart/drawing"
+	"github.com/Strubbl/go-chart/v2"
+	"github.com/Strubbl/go-chart/v2/drawing"
 	"time"
 )
 
@@ -59,7 +59,7 @@ func (summary SleepSummary) GetChartBands() []chart.Series {
 
 		timeSeries := chart.TimeSeries{
 			Style: chart.Style{
-				Show:        true,
+				Hidden:        true,
 				FillColor:   color,
 				StrokeColor: color,
 			},
