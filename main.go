@@ -7,8 +7,8 @@ import (
 	"html/template"
 	"log"
 	"math"
-	"net/http"
 	"time"
+	"github.com/syumai/workers"
 )
 
 var templates *template.Template
@@ -65,12 +65,5 @@ func main() {
 	log.Println("Initialisation complete")
 
 	r := getRouter()
-	srv := &http.Server{
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		Handler:      r,
-		Addr:         ":6662",
-	}
-	log.Println("Starting server...")
-	log.Fatal(srv.ListenAndServe())
+	workers.Serve(r)
 }
