@@ -1,21 +1,21 @@
 # Smart Alarm Server
 HTTP Server for [Smart Alarm](https://www.github.com/fridgecow/smartalarm), a standalone sleep tracker for Wear OS.
 
+Neither the sleep tracker nor this server are in active development. The server running at smartalarm.fridgecow.com will be sunset soon, but this project should still work.
+
 ## Installation
+
+### Requirements
 
 You will need an SMTP email server and a mySQL database.
 
-### Download a Binary
+### Download
 
-There is at least one release binary [under the Releases tab](https://github.com/fridgecow/smartalarm-server/releases). It may be out of date. If you use this, skip to "Setup Environment"
-
-### Build from Source
-
-The server is written in Go. Once your go environment is setup, just run `go get github.com/fridgecow/smartalarm-server` to install `smartalarm-server` in `$GOPATH/bin`.
+The server is written in Go. Once you have go installed and your environment is setup, run `go install github.com/fridgecow/smartalarm-server@latest` to install `smartalarm-server` in `$GOPATH/bin`.
 
 ### Setup Environment
 
-3. Run `db_structure.sql` against your mySQL DB to set up the required table.
+3. Run `db_structure.sql` against your MySQL DB to set up the required table.
 4. Set up environment variables, listed below. E.g `export SMARTALARM_DBPASS=mydatabasepass`
 6. Copy the `templates` directory in the working directory for the server wherever it's run. You must also create a `log` directory for the server to run.
 
